@@ -4,3 +4,16 @@ spring:
     url: jdbc:postgresql://localhost:5432/dev
     username: dev
     password: secret
+#logging:
+#  level:
+#    root: DEBUG
+database:
+  url: jdbc:postgresql://localhost:5432/dev
+  username: dev
+  password: secret
+  driver-class-name: org.postgresql.Driver
+cp:
+  maxTotal: 96
+  maxIdle: 16
+  minIdle: 0
+  maxWaitMillis: 60000
