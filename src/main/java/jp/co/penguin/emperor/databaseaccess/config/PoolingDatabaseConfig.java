@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 @Configuration
 @ComponentScan("jp.co.penguin.emperor.databaseaccess")
 @PropertySource("classpath:application.yml")
-@MapperScan("jp.co.penguin.emperor.databaseaccess.mapper")
+@MapperScan("jp.co.penguin.emperor.databaseaccess.mapper") // 使用するMapperインターフェースのパッケージを指定
 @EnableTransactionManagement
 public class PoolingDatabaseConfig {
 
@@ -31,8 +31,19 @@ public class PoolingDatabaseConfig {
     @Value("${cp.minIdle}") int minIdle;
     @Value("${cp.maxWaitMillis}") long maxWaitMillis;
 
-
-    @Bean(destroyMethod = "close")
+    /**
+     * データソース設定
+     * @param driverName アプリケーションで使用するRDBのドライバークラス
+     * @param url 接続先のデータベースのurl
+     * @param username データベースで使用するユーザ名
+     * @param password データベースで使用するパスワード
+     * @param maxTotal データベース接続しているコネクションの最大値
+     * @param maxIdle コネクションプールに待機しているコネクションの最大値
+     * @param minIdle コネクションプールに待機しているコネクションの最小値
+     * @param maxWaitMillis コネクションが使用され返却されるまでの時間の最大値
+     * @return 上記設定でカスタマイズされたデータソース
+     */
+    @Bean(destroyMethod = "close") // アプリケーションが終了するタイミングでデータソースが解放されるように設定
     public DataSource dataSource(
             @Value("${database.driver-class-name}") String driverName,
             @Value("${database.url}") String url,
@@ -54,6 +65,10 @@ public class PoolingDatabaseConfig {
         return dataSource;
     }
 
+    /**
+     * TransactionManagerのBean定義
+     * @return TransactionManager
+     */
     @Bean
     public PlatformTransactionManager transactionManager() {
         return new DataSourceTransactionManager(dataSource(
@@ -68,6 +83,10 @@ public class PoolingDatabaseConfig {
         ));
     }
 
+    /**
+     * SqlSessionFactoryBeanのBean定義
+     * @return アプリケーション起動時にSqlSessionFactoryを生成するSqlSessionFactoryBean
+     */
     @Bean
     public SqlSessionFactoryBean sqlSessionFactory() {
         SqlSessionFactoryBean sessionFactoryBean = new SqlSessionFactoryBean();
@@ -82,6 +101,7 @@ public class PoolingDatabaseConfig {
                 maxWaitMillis
                 )
         );
+        // MyBatis設定ファイルを指定
         sessionFactoryBean.setConfigLocation(
                 new ClassPathResource("/mybatis-config.xml")
         );
