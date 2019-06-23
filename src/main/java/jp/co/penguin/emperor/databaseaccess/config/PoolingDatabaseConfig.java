@@ -22,37 +22,31 @@ import javax.sql.DataSource;
 @EnableTransactionManagement
 public class PoolingDatabaseConfig {
 
-    @Value("${database.driver-class-name}") String driverName;
-    @Value("${database.url}") String url;
-    @Value("${database.username}") String username;
-    @Value("${database.password}") String password;
-    @Value("${cp.maxTotal}") int maxTotal;
-    @Value("${cp.maxIdle}") int maxIdle;
-    @Value("${cp.minIdle}") int minIdle;
-    @Value("${cp.maxWaitMillis}") long maxWaitMillis;
+    /**
+     * driverName アプリケーションで使用するRDBのドライバークラス
+     * url 接続先のデータベースのurl
+     * username データベースで使用するユーザ名
+     * password データベースで使用するパスワード
+     * maxTotal データベース接続しているコネクションの最大値
+     * maxIdle コネクションプールに待機しているコネクションの最大値
+     * minIdle コネクションプールに待機しているコネクションの最小値
+     * maxWaitMillis コネクションが使用され返却されるまでの時間の最大値
+     */
+    @Value("${database.driver-class-name}") private String driverName;
+    @Value("${database.url}") private String url;
+    @Value("${database.username}") private String username;
+    @Value("${database.password}") private String password;
+    @Value("${cp.maxTotal}") private int maxTotal;
+    @Value("${cp.maxIdle}") private int maxIdle;
+    @Value("${cp.minIdle}") private int minIdle;
+    @Value("${cp.maxWaitMillis}") private long maxWaitMillis;
 
     /**
      * データソース設定
-     * @param driverName アプリケーションで使用するRDBのドライバークラス
-     * @param url 接続先のデータベースのurl
-     * @param username データベースで使用するユーザ名
-     * @param password データベースで使用するパスワード
-     * @param maxTotal データベース接続しているコネクションの最大値
-     * @param maxIdle コネクションプールに待機しているコネクションの最大値
-     * @param minIdle コネクションプールに待機しているコネクションの最小値
-     * @param maxWaitMillis コネクションが使用され返却されるまでの時間の最大値
      * @return 上記設定でカスタマイズされたデータソース
      */
     @Bean(destroyMethod = "close") // アプリケーションが終了するタイミングでデータソースが解放されるように設定
-    public DataSource dataSource(
-            @Value("${database.driver-class-name}") String driverName,
-            @Value("${database.url}") String url,
-            @Value("${database.username}") String username,
-            @Value("${database.password}") String password,
-            @Value("${cp.maxTotal}") int maxTotal,
-            @Value("${cp.maxIdle}") int maxIdle,
-            @Value("${cp.minIdle}") int minIdle,
-            @Value("${cp.maxWaitMillis}") long maxWaitMillis) {
+    public DataSource dataSource() {
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName(driverName);
         dataSource.setUrl(url);
@@ -71,16 +65,7 @@ public class PoolingDatabaseConfig {
      */
     @Bean
     public PlatformTransactionManager transactionManager() {
-        return new DataSourceTransactionManager(dataSource(
-                driverName,
-                url,
-                username,
-                password,
-                maxTotal,
-                maxIdle,
-                minIdle,
-                maxWaitMillis
-        ));
+        return new DataSourceTransactionManager(dataSource());
     }
 
     /**
@@ -90,16 +75,7 @@ public class PoolingDatabaseConfig {
     @Bean
     public SqlSessionFactoryBean sqlSessionFactory() {
         SqlSessionFactoryBean sessionFactoryBean = new SqlSessionFactoryBean();
-        sessionFactoryBean.setDataSource(dataSource(
-                driverName,
-                url,
-                username,
-                password,
-                maxTotal,
-                maxIdle,
-                minIdle,
-                maxWaitMillis
-                )
+        sessionFactoryBean.setDataSource(dataSource()
         );
         // MyBatis設定ファイルを指定
         sessionFactoryBean.setConfigLocation(
